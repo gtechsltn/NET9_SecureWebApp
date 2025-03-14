@@ -1,4 +1,27 @@
 # Secure Your .NET Web App in .NET 9
+* 6: Native AOT
+* 5: OpenID Connect and OAuth 2.0
+* 4: OAuth (Open Authorization)
+* 3: JWT (JSON Web Token)
+* 2: API Key authorization
+* 1: Basic Authentication
+
+# Topics
+* Authentication
+* Authorization
+* Data protection
+* HTTPS enforcement
+* Safe storage of app secrets in development
+* XSRF/CSRF prevention
+* Cross Origin Resource Sharing (CORS)
+* Cross-Site Scripting (XSS) attacks
+* OWASP Cheat Sheet Series
+* Enforce HTTPS
+* Configure Secure Headers
+* Use Multi-Factor Authentication (MFA)
+* Modern Authentication Protocols (OpenID Connect and OAuth 2.0)
+* Security Best Practices
+* Monitor and Log Securely
 
 Protect Your .NET Applications: Best 4 Authorization Mechanisms
 
