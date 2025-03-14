@@ -773,3 +773,39 @@ class LogViewer
     + LogExpert (Free and lightweight)
     + BareTail (Great for tailing logs)
     + tail -f (Linux/Mac) → View logs updating live.
+
+# RealTimeLogViewer.cs in .NET (C#)
+```
+using System;
+using System.IO;
+
+class RealTimeLogViewer
+{
+    static void Main()
+    {
+        string logFile = "Logs/LogFile.log"; // Adjust to latest log file
+        if (!File.Exists(logFile))
+        {
+            Console.WriteLine("Log file not found!");
+            return;
+        }
+
+        using (FileStream fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+        using (StreamReader reader = new StreamReader(fs))
+        {
+            Console.WriteLine("Real-time Log Viewer started...\n");
+
+            while (true)
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
+                }
+
+                System.Threading.Thread.Sleep(500); // Small delay to avoid CPU overload
+            }
+        }
+    }
+}
+```
