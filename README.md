@@ -424,3 +424,215 @@ public async Task<int> InsertCustomerAsync(string name, string email, string cit
     }
 }
 ```
+
+## Updated DataWriterExtensions with VARBINARY(MAX) Support
+```
+using System;
+using System.Data;
+using System.Data.SqlClient;
+
+public static class DataWriterExtensions
+{
+    /// <summary>
+    /// Adds multiple parameters at once to a SqlCommand using a params array.
+    /// </summary>
+    public static void AddParameters(this SqlCommand cmd, params (string paramName, object value)[] parameters)
+    {
+        foreach (var (paramName, value) in parameters)
+        {
+            cmd.AddParameter(paramName, value);
+        }
+    }
+
+    /// <summary>
+    /// Adds a single parameter to the SqlCommand, handling null and VARBINARY values correctly.
+    /// </summary>
+    public static void AddParameter(this SqlCommand cmd, string paramName, object value)
+    {
+        if (value is byte[] byteArray)  // Handle VARBINARY(MAX) properly
+        {
+            cmd.Parameters.Add(paramName, SqlDbType.VarBinary, -1).Value = byteArray ?? DBNull.Value;
+        }
+        else
+        {
+            cmd.Parameters.AddWithValue(paramName, value ?? DBNull.Value);
+        }
+    }
+
+    /// <summary>
+    /// Adds a parameter with a specified SQL data type.
+    /// </summary>
+    public static void AddParameter(this SqlCommand cmd, string paramName, SqlDbType dbType, object value)
+    {
+        var param = cmd.Parameters.Add(paramName, dbType);
+        param.Value = value ?? DBNull.Value;
+    }
+
+    /// <summary>
+    /// Adds a VARBINARY(MAX) parameter.
+    /// </summary>
+    public static void AddVarBinaryParameter(this SqlCommand cmd, string paramName, byte[] value)
+    {
+        cmd.Parameters.Add(paramName, SqlDbType.VarBinary, -1).Value = value ?? DBNull.Value;
+    }
+
+    /// <summary>
+    /// Adds an output parameter.
+    /// </summary>
+    public static void AddOutputParameter(this SqlCommand cmd, string paramName, SqlDbType dbType)
+    {
+        var param = cmd.Parameters.Add(paramName, dbType);
+        param.Direction = ParameterDirection.Output;
+    }
+}
+```
+
+## Insert Example (Storing Image in Database)
+```
+public async Task InsertFileAsync(string fileName, byte[] fileData)
+{
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        using (SqlCommand cmd = new SqlCommand("InsertFile", conn))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            // Using variadic method
+            cmd.AddParameters(
+                ("@FileName", fileName),
+                ("@FileData", fileData) // VARBINARY(MAX) automatically handled
+            );
+
+            await conn.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+    }
+}
+```
+
+## Reading VARBINARY(MAX) (Retrieving File)
+```
+public async Task<(string fileName, byte[] fileData)> GetFileAsync(int fileId)
+{
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        using (SqlCommand cmd = new SqlCommand("GetFile", conn))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.AddParameter("@FileId", fileId);
+
+            await conn.OpenAsync();
+            using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    return (
+                        reader.GetValueOrDefault<string>("FileName"),
+                        reader.IsDBNull("FileData") ? null : (byte[])reader["FileData"]
+                    );
+                }
+            }
+        }
+    }
+    return (null, null); // No file found
+}
+```
+
+## Efficiently Reading VARBINARY(MAX) for Large Files (1GB+)
+
+**Optimized Method to Read Large Files**
+
+```
+public async Task ReadLargeFileAsync(int fileId, string outputFilePath)
+{
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        using (SqlCommand cmd = new SqlCommand("GetLargeFile", conn))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.AddParameter("@FileId", fileId);
+
+            await conn.OpenAsync();
+            using (SqlDataReader reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess)) // Stream mode
+            {
+                if (await reader.ReadAsync())
+                {
+                    string fileName = reader.GetValueOrDefault<string>("FileName");
+
+                    using (Stream fileStream = File.Create(outputFilePath))
+                    using (Stream dbStream = reader.GetStream(reader.GetOrdinal("FileData")))
+                    {
+                        await dbStream.CopyToAsync(fileStream); // Efficient streaming
+                    }
+
+                    Console.WriteLine($"File '{fileName}' saved to {outputFilePath}");
+                }
+            }
+        }
+    }
+}
+```
+
+### ✅ How It Works
+* Use CommandBehavior.SequentialAccess → Prevents memory overload by streaming data.
+* reader.GetStream() → Reads VARBINARY(MAX) as a stream instead of byte[].
+* CopyToAsync() → Streams data directly to a file without using excessive RAM.
+
+## 📌 Why This is Better
+* ✔️ Handles large files (1GB+) without memory issues
+* ✔️ Efficient streaming to file storage
+* ✔️ Prevents OutOfMemoryException
+
+## Efficiently Writing VARBINARY(MAX) for Large Files (1GB+) in SQL Server
+
+When writing large files (e.g., 1GB+) into SQL Server, we need to stream the file in chunks to prevent memory overload.
+
+**Optimized Method to Insert Large Files**
+
+Instead of loading the entire file into memory (byte[]), we use SqlParameter with Stream.
+
+```
+public async Task InsertLargeFileAsync(string filePath)
+{
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        using (SqlCommand cmd = new SqlCommand("InsertLargeFile", conn))
+        {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.AddParameter("@FileName", Path.GetFileName(filePath));
+
+            // Open file as stream
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                // Create SQL parameter for VARBINARY(MAX)
+                SqlParameter fileParam = new SqlParameter("@FileData", SqlDbType.VarBinary, -1)
+                {
+                    Value = fileStream // Assign stream instead of byte[]
+                };
+
+                cmd.Parameters.Add(fileParam);
+
+                await conn.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+    }
+}
+```
+
+### Stored Procedure for VARBINARY(MAX)
+```
+CREATE PROCEDURE InsertLargeFile
+    @FileName NVARCHAR(255),
+    @FileData VARBINARY(MAX)
+AS
+BEGIN
+    INSERT INTO FileStorage (FileName, FileData)
+    VALUES (@FileName, @FileData);
+END
+```
+
+### Why This is Better
+* ✔️ Streams directly from disk to DB (no huge byte[] in memory)
+* ✔️ Prevents OutOfMemoryException for 1GB+ files
+* ✔️ Optimized for performance and large datasets
