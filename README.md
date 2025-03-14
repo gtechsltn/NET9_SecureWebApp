@@ -7,9 +7,20 @@
 * 1: Basic Authentication
 
 * Role-Based Access Control (RBAC)
+✅ Best for: Applications with predefined user roles (e.g., Admin, Manager, User).
+✅ RBAC assigns users to specific roles, granting access based on their assigned role. It’s simple to implement and widely used.
 * Claims-Based Authorization
+✅ Best for: Scenarios where access is based on user attributes (e.g., department, clearance level).
+✅ Claims-based authorization allows defining user claims (key-value pairs) to control access dynamically.
+✅ Claims are typically stored in JWT tokens or identity providers.
 * Policy-Based Authorization
-* Attribute-Based Authorization
+✅ Best for: Applications with complex access rules beyond roles and claims.
+✅ Policies define rules using claims, roles, or custom logic.
+* Attribute-Based Authorization (Custom Handlers)
+✅ Best for: Advanced scenarios requiring custom authorization logic.
+✅ This method uses custom attributes and handlers to control access dynamically.
+
+![Authorization Mechanism](https://github.com/user-attachments/assets/df75377f-6b2f-48a4-aeee-4bbcf1bf0ffa)
 
 # Topics
 * Authentication
