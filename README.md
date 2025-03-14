@@ -1,11 +1,22 @@
 # Secure Your .NET Web App in .NET 9
+* Opening and Reading Millions of Files as Fast as Possible in C#
+* Handling millions of files efficiently requires parallel processing, streaming, and optimized file handling to avoid bottlenecks.
+    * System.IO.MemoryMappedFiles
+    * System.Threading.Tasks
+    * System.Collections.Concurrent
+        * MaxDegreeOfParallelism = CPU count
+        * Parallel.ForEach
+        * ConcurrentQueue
+* ✅ Use Parallel Processing (PLINQ, Parallel.ForEach) for multi-threading.
+* ✅ Read files line-by-line (StreamReader) instead of loading the entire content.
+* ✅ Batch Process instead of opening all files at once.
+* ✅ Use Memory-Mapped Files if reading the same file multiple times.
 * 6: Native AOT
 * 5: OpenID Connect and OAuth 2.0
 * 4: OAuth (Open Authorization)
 * 3: JWT (JSON Web Token)
 * 2: API Key authorization
 * 1: Basic Authentication
-
 * Role-Based Access Control (RBAC)
     + ✅ Best for: Applications with predefined user roles (e.g., Admin, Manager, User).
     + ✅ RBAC assigns users to specific roles, granting access based on their assigned role. It’s simple to implement and widely used.
