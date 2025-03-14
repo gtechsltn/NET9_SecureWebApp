@@ -712,3 +712,64 @@ GC.WaitForPendingFinalizers();
 * ✅ Use reader.GetStream() to read VARBINARY(MAX) efficiently
 * ✅ Force garbage collection if needed (GC.Collect())
 * ✅ Use x64 architecture to handle larger memory allocation
+
+# View All Log Files in a Proper Way
+
+**To list, open, and read log files, use this approach:**
+
+* ✅ C# Code to Read All Log Files
+```
+using System;
+using System.IO;
+
+class LogViewer
+{
+    static void Main()
+    {
+        string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+
+        if (!Directory.Exists(logDirectory))
+        {
+            Console.WriteLine("Log directory not found!");
+            return;
+        }
+
+        Console.WriteLine("Available Log Files:");
+        var logFiles = Directory.GetFiles(logDirectory, "*.log");
+
+        for (int i = 0; i < logFiles.Length; i++)
+        {
+            Console.WriteLine($"{i + 1}. {Path.GetFileName(logFiles[i])}");
+        }
+
+        Console.Write("\nEnter file number to view (or 0 to exit): ");
+        if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= logFiles.Length)
+        {
+            string selectedFile = logFiles[choice - 1];
+            Console.WriteLine($"\nReading {Path.GetFileName(selectedFile)}...\n");
+
+            using (StreamReader reader = new StreamReader(selectedFile))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
+                }
+            }
+        }
+    }
+}
+```
+
+* ✔️ Lists all log files in the Logs/ directory.
+* ✔️ Allows users to select and read a log file.
+* ✔️ Prevents memory issues by reading logs line-by-line instead of loading everything at once.
+
+## Use a Log Viewer for Better Visualization
+* 🔹 Option 1: Use Notepad++ or Visual Studio Code
+    + Open the logs in Notepad++ or VS Code.
+    + Enable auto-refresh to see logs update in real-time.
+* 🔹 Option 2: Use a Real-Time Tail Viewer
+    + LogExpert (Free and lightweight)
+    + BareTail (Great for tailing logs)
+    + tail -f (Linux/Mac) → View logs updating live.
