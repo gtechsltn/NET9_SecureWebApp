@@ -636,3 +636,79 @@ END
 * ✔️ Streams directly from disk to DB (no huge byte[] in memory)
 * ✔️ Prevents OutOfMemoryException for 1GB+ files
 * ✔️ Optimized for performance and large datasets
+
+# Preventing OutOfMemoryException in .NET C# Console Apps
+
+Handling large files (1GB+) in a memory-efficient way is critical to avoid OutOfMemoryException. Here are the best strategies:
+
+## 1. Stream Large Files Instead of Using byte[]
+
+### Avoid
+```
+byte[] fileData = File.ReadAllBytes(filePath); // ❌ BAD: Loads entire file into memory
+cmd.Parameters.AddWithValue("@FileData", fileData);
+```
+
+### Use Streaming Instead:
+```
+using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+{
+    SqlParameter param = new SqlParameter("@FileData", SqlDbType.VarBinary, -1)
+    {
+        Value = fs // ✅ Stream instead of byte[]
+    };
+    cmd.Parameters.Add(param);
+}
+```
+
+## 2. Read Large VARBINARY(MAX) from SQL Server Efficiently
+
+### Avoid
+```
+byte[] fileData = (byte[])reader["FileData"]; // ❌ BAD: Loads entire file into memory
+```
+
+### Use Streaming Instead:
+```
+using (Stream dbStream = reader.GetStream(reader.GetOrdinal("FileData")))
+using (FileStream fileStream = File.Create(outputPath))
+{
+    await dbStream.CopyToAsync(fileStream); // ✅ Efficient streaming
+}
+```
+
+## 3. Process Large Files in Chunks (HAY HAY HAY)
+* ✅ Use Buffered Reading Instead of ReadAllText() or ReadAllBytes()
+```
+using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+using (BufferedStream bs = new BufferedStream(fs, 8192)) // ✅ Buffered read
+using (StreamReader sr = new StreamReader(bs))
+{
+    while (!sr.EndOfStream)
+    {
+        string line = await sr.ReadLineAsync();
+        // Process each line without loading everything into memory
+    }
+}
+```
+* ✅ Advantage: Uses small buffer sizes to reduce memory footprint.
+
+## 4. Use GC.Collect() Cautiously
+* If you deal with temporary objects, force garbage collection:
+```
+GC.Collect();
+GC.WaitForPendingFinalizers();
+```
+* ✅ Advantage: Clears unused memory, but only use it sparingly.
+
+## 5. Increase Memory Limits for x86 Apps
+* If running a 32-bit app, you can increase memory limits by enabling LARGEADDRESSAWARE:
+* Build as x64 (preferred).
+* ✅ Advantage: Allows more than 2GB memory for 32-bit applications.
+
+## 🚀 Summary: Best Practices to Prevent OutOfMemoryException
+* ✅ Use Stream instead of byte[] for large files
+* ✅ Process files in chunks (e.g., BufferedStream, StreamReader)
+* ✅ Use reader.GetStream() to read VARBINARY(MAX) efficiently
+* ✅ Force garbage collection if needed (GC.Collect())
+* ✅ Use x64 architecture to handle larger memory allocation
