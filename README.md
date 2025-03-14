@@ -7,18 +7,18 @@
 * 1: Basic Authentication
 
 * Role-Based Access Control (RBAC)
-✅ Best for: Applications with predefined user roles (e.g., Admin, Manager, User).
-✅ RBAC assigns users to specific roles, granting access based on their assigned role. It’s simple to implement and widely used.
+    + ✅ Best for: Applications with predefined user roles (e.g., Admin, Manager, User).
+    + ✅ RBAC assigns users to specific roles, granting access based on their assigned role. It’s simple to implement and widely used.
 * Claims-Based Authorization
-✅ Best for: Scenarios where access is based on user attributes (e.g., department, clearance level).
-✅ Claims-based authorization allows defining user claims (key-value pairs) to control access dynamically.
-✅ Claims are typically stored in JWT tokens or identity providers.
+    + ✅ Best for: Scenarios where access is based on user attributes (e.g., department, clearance level).
+    + ✅ Claims-based authorization allows defining user claims (key-value pairs) to control access dynamically.
+    + ✅ Claims are typically stored in JWT tokens or identity providers.
 * Policy-Based Authorization
-✅ Best for: Applications with complex access rules beyond roles and claims.
-✅ Policies define rules using claims, roles, or custom logic.
+    + ✅ Best for: Applications with complex access rules beyond roles and claims.
+    + ✅ Policies define rules using claims, roles, or custom logic.
 * Attribute-Based Authorization (Custom Handlers)
-✅ Best for: Advanced scenarios requiring custom authorization logic.
-✅ This method uses custom attributes and handlers to control access dynamically.
+    + ✅ Best for: Advanced scenarios requiring custom authorization logic.
+    + ✅ This method uses custom attributes and handlers to control access dynamically.
 
 ![Authorization Mechanism](https://github.com/user-attachments/assets/df75377f-6b2f-48a4-aeee-4bbcf1bf0ffa)
 
@@ -34,9 +34,9 @@ Multi-Factor Authentication (MFA) is a security mechanism that requires users to
 🔹 Ensures compliance with security standards (e.g., GDPR, HIPAA).
 
 ## Common MFA Methods
-✅ Something You Know – Password, PIN
-✅ Something You Have – OTP (One-Time Password) via SMS, Email, Authenticator App
-✅ Something You Are – Biometric verification (fingerprint, facial recognition)
++ ✅ Something You Know – Password, PIN
++ ✅ Something You Have – OTP (One-Time Password) via SMS, Email, Authenticator App
++ ✅ Something You Are – Biometric verification (fingerprint, facial recognition)
 
 # Security Topics
 * Authentication
@@ -342,9 +342,9 @@ public static class DataReaderExtensions
 ```
 
 ✅ Summary
-🔥 Stored procedures ensure security and performance
-🔥 C# ADO.NET ensures efficient execution
-🔥 Supports Insert, Select, Update, and Delete operations
++ 🔥 Stored procedures ensure security and performance
++ 🔥 C# ADO.NET ensures efficient execution
++ 🔥 Supports Insert, Select, Update, and Delete operations
 
 Would you like me to convert this into an ASP.NET Core Web API for CRUD operations? 🚀
 
@@ -809,3 +809,35 @@ class RealTimeLogViewer
     }
 }
 ```
+
+## Configure Log4Net to Store Logs in Files
+
+Example log4net.config (Rolling File Appender)
+
+```
+<configuration>
+  <log4net>
+    <appender name="RollingFileAppender" type="log4net.Appender.RollingFileAppender">
+      <file value="Logs/LogFile.log" />
+      <appendToFile value="true" />
+      <rollingStyle value="Date" />
+      <datePattern value="yyyyMMdd'.log'" />
+      <staticLogFileName value="false" />
+      <maxSizeRollBackups value="10" />
+      <maximumFileSize value="10MB" />
+      <layout type="log4net.Layout.PatternLayout">
+        <conversionPattern value="%date [%thread] %-5level %logger - %message%newline" />
+      </layout>
+    </appender>
+
+    <root>
+      <level value="DEBUG" />
+      <appender-ref ref="RollingFileAppender" />
+    </root>
+  </log4net>
+</configuration>
+```
+
+* ✔️ Logs will be stored in the Logs/ folder with daily rotation.
+* ✔️ Old logs are automatically managed (maxSizeRollBackups="10" limits to 10 files).
+* 
