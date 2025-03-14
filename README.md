@@ -840,4 +840,187 @@ Example log4net.config (Rolling File Appender)
 
 * ✔️ Logs will be stored in the Logs/ folder with daily rotation.
 * ✔️ Old logs are automatically managed (maxSizeRollBackups="10" limits to 10 files).
-* 
+
+# 🚀 Opening and Reading Millions of Files as Fast as Possible in C#
+
+Handling millions of files efficiently requires parallel processing, streaming, and optimized file handling to avoid bottlenecks.
+
+## 1. Optimized Strategy
+
+##🔹 DO NOT
++ ❌ Load all files into memory (causes OutOfMemoryException).
++ ❌ Use single-threaded processing (too slow).
++ ❌ Open all files at once (too many file handles).
+
+##🔹 DO
++ ✅ Use Parallel Processing (PLINQ, Parallel.ForEach) for multi-threading.
++ ✅ Read files line-by-line (StreamReader) instead of loading the entire content.
++ ✅ Batch Process instead of opening all files at once.
++ ✅ Use Memory-Mapped Files if reading the same file multiple times.
+
+## 2. Fastest Method: Parallel.ForEach + StreamReader
+```
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+
+class FastFileReader
+{
+    static void Main()
+    {
+        string directoryPath = "C:\\Logs"; // Change to your directory
+        string[] files = Directory.GetFiles(directoryPath, "*.log", SearchOption.AllDirectories);
+
+        Console.WriteLine($"Processing {files.Length} files...");
+
+        Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+        {
+            try
+            {
+                using (StreamReader reader = new StreamReader(file))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        // Process line here (e.g., search/filter logs)
+                    }
+                }
+                Console.WriteLine($"Processed: {file}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing {file}: {ex.Message}");
+            }
+        });
+
+        Console.WriteLine("Finished processing all files.");
+    }
+}
+```
+
++ ✅ Uses all CPU cores (MaxDegreeOfParallelism = CPU count).
++ ✅ Streams files line-by-line, preventing memory overload.
++ ✅ Handles errors gracefully (prevents crashes).
+
+## 3. Even Faster: Task.Run with Batching
+
+For millions of files, process in batches using ConcurrentQueue:
+
+```
+using System;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+class BatchFileProcessor
+{
+    static void Main()
+    {
+        string directoryPath = "C:\\Logs";
+        string[] files = Directory.GetFiles(directoryPath, "*.log", SearchOption.AllDirectories);
+        ConcurrentQueue<string> fileQueue = new ConcurrentQueue<string>(files);
+
+        int batchSize = 1000; // Adjust based on system memory
+        int numWorkers = Environment.ProcessorCount;
+
+        Console.WriteLine($"Processing {files.Length} files with {numWorkers} threads...");
+
+        Task[] tasks = Enumerable.Range(0, numWorkers).Select(_ => Task.Run(() =>
+        {
+            while (fileQueue.TryDequeue(out string file))
+            {
+                ProcessFile(file);
+            }
+        })).ToArray();
+
+        Task.WaitAll(tasks);
+        Console.WriteLine("Finished processing all files.");
+    }
+
+    static void ProcessFile(string filePath)
+    {
+        try
+        {
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                while (!reader.EndOfStream)
+                {
+                    string line = reader.ReadLine();
+                    // Process line here
+                }
+            }
+            Console.WriteLine($"Processed: {filePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing {filePath}: {ex.Message}");
+        }
+    }
+}
+```
+
++ ✅ Batches files to avoid excessive resource usage.
++ ✅ Distributes file processing across multiple worker tasks.
++ ✅ Prevents system overload by managing memory efficiently.
+
+## 4. Advanced: Memory-Mapped Files (for Ultra-Large Files)
+
+For ultra-large files (10GB+), use Memory-Mapped Files:
+
+```
+using System;
+using System.IO;
+using System.IO.MemoryMappedFiles;
+
+class MemoryMappedReader
+{
+    static void ReadLargeFile(string filePath)
+    {
+        using (var mmf = MemoryMappedFile.CreateFromFile(filePath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read))
+        using (var stream = mmf.CreateViewStream(0, 0, MemoryMappedFileAccess.Read))
+        using (var reader = new StreamReader(stream))
+        {
+            while (!reader.EndOfStream)
+            {
+                string line = reader.ReadLine();
+                // Process line here
+            }
+        }
+    }
+}
+```
+
++ ✅ Avoids loading the entire file into memory.
++ ✅ Ideal for re-reading the same large file multiple times.
+
+## 5. Even Faster: Asynchronous Processing (await)
+
+Use async file reading for better responsiveness:
+
+```
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+class AsyncFileReader
+{
+    static async Task ReadFileAsync(string filePath)
+    {
+        using (StreamReader reader = new StreamReader(filePath))
+        {
+            while (!reader.EndOfStream)
+            {
+                string line = await reader.ReadLineAsync();
+                // Process line here
+            }
+        }
+    }
+}
+```
+
+* ✅ Reduces blocking by using await.
+* ✅ Better for UI apps or web servers that need real-time response.
+
+![Opening and Reading Millions of Files as Fast as Possible in C#](https://github.com/user-attachments/assets/0fcece5e-84e3-410a-afb6-6062831caec7)
