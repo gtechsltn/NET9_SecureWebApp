@@ -1,4 +1,6 @@
 # Secure Your .NET Web App in .NET 9
+* Exception Handling Scenarios
+* Opening and Reading Billions of Files as Fast as Possible in C#
 * Opening and Reading Millions of Files as Fast as Possible in C#
 * Handling millions of files efficiently requires parallel processing, streaming, and optimized file handling to avoid bottlenecks.
     * System.IO.MemoryMappedFiles
@@ -40,9 +42,9 @@
 Multi-Factor Authentication (MFA) is a security mechanism that requires users to provide two or more forms of verification before gaining access to an application. This significantly enhances security by reducing the risk of unauthorized access due to stolen passwords.
 
 ## Why Use MFA in .NET Applications?
-🔹 Protects against credential theft and phishing attacks.
-🔹 Strengthens access control by requiring multiple verification factors.
-🔹 Ensures compliance with security standards (e.g., GDPR, HIPAA).
++ 🔹 Protects against credential theft and phishing attacks.
++ 🔹 Strengthens access control by requiring multiple verification factors.
++ 🔹 Ensures compliance with security standards (e.g., GDPR, HIPAA).
 
 ## Common MFA Methods
 + ✅ Something You Know – Password, PIN
