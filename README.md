@@ -78,9 +78,9 @@ https://www.linkedin.com/pulse/secure-your-net-applications-top-security-practic
 # CRUD using Stored Procedure
 
 ## Steps to Implement:
-1️⃣ Create a SQL Server table
-2️⃣ Create stored procedures for CRUD operations
-3️⃣ Write C# code to call these procedures using ADO.NET
+* 1️⃣ Create a SQL Server table
+* 2️⃣ Create stored procedures for CRUD operations
+* 3️⃣ Write C# code to call these procedures using ADO.NET
 
 ### 1. Create Table in SQL Server
 ```
@@ -360,7 +360,7 @@ public static class DataReaderExtensions
 }
 ```
 
-### Usage:
+### Usage of DataReaderExtensions:
 ```
 DateTime? lastLogin = reader.GetNullableValue<DateTime>("LastLogin");
 bool? isActive = reader.GetNullableValue<bool>("IsActive");
@@ -402,7 +402,7 @@ public static class DataWriterExtensions
 }
 ```
 
-### Usage:
+### Usage of DataWriterExtensions:
 ```
 public async Task<int> InsertCustomerAsync(string name, string email, string city)
 {
