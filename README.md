@@ -1035,3 +1035,270 @@ class AsyncFileReader
 * ✅ Better for UI apps or web servers that need real-time response.
 
 ![Opening and Reading Millions of Files as Fast as Possible in C#](https://github.com/user-attachments/assets/0fcece5e-84e3-410a-afb6-6062831caec7)
+
+# Batch Processing Mechanisms in C#
+
+Batch processing is essential for efficiently handling large datasets, multiple files, bulk database operations, and long-running tasks.
+
+Here are the best C# batch processing techniques, along with when to use them.
+
+## 1. Parallel.ForEach for Multi-Threaded Processing
+
+*🔹 Best For:
+   * Processing millions of files
+   * CPU-intensive operations (e.g., data transformations)
+
+```
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+class ParallelBatchProcessing
+{
+    static void Main()
+    {
+        string[] files = Directory.GetFiles("C:\\Logs", "*.log");
+        Console.WriteLine($"Processing {files.Length} files...");
+
+        Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+        {
+            ProcessFile(file);
+        });
+
+        Console.WriteLine("Finished processing all files.");
+    }
+
+    static void ProcessFile(string filePath)
+    {
+        using (StreamReader reader = new StreamReader(filePath))
+        {
+            while (!reader.EndOfStream)
+            {
+                string line = reader.ReadLine();
+                // Process the line
+            }
+        }
+        Console.WriteLine($"Processed: {filePath}");
+    }
+}
+```
+
+* ✅ Utilizes multiple CPU cores (MaxDegreeOfParallelism)
+* ✅ Prevents excessive thread creation
+* ✅ Ideal for processing files in parallel
+
+## 2. ConcurrentQueue + Task.Run for Large Batches
+* 🔹 Best For:
+   + Processing millions of records/files
+   + Avoiding high memory usage
+   + Worker-based task execution
+
+```
+using System;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+class BatchProcessor
+{
+    static void Main()
+    {
+        string[] files = Directory.GetFiles("C:\\Logs", "*.log");
+        ConcurrentQueue<string> fileQueue = new ConcurrentQueue<string>(files);
+        int workerCount = Environment.ProcessorCount;
+
+        Task[] tasks = Enumerable.Range(0, workerCount).Select(_ => Task.Run(() =>
+        {
+            while (fileQueue.TryDequeue(out string file))
+            {
+                ProcessFile(file);
+            }
+        })).ToArray();
+
+        Task.WaitAll(tasks);
+        Console.WriteLine("Finished processing all files.");
+    }
+
+    static void ProcessFile(string filePath)
+    {
+        using (StreamReader reader = new StreamReader(filePath))
+        {
+            while (!reader.EndOfStream)
+            {
+                string line = reader.ReadLine();
+                // Process line
+            }
+        }
+        Console.WriteLine($"Processed: {filePath}");
+    }
+}
+```
+
+## 3. Bulk Database Operations (SqlBulkCopy)
+
+* Best For:
+   + Inserting millions of rows into SQL Server
+   + ETL (Extract, Transform, Load) scenarios
+   + Migrating large datasets
+
+```
+using System;
+using System.Data;
+using System.Data.SqlClient;
+
+class BulkInsertExample
+{
+    static void Main()
+    {
+        string connectionString = "your_connection_string";
+        DataTable table = GetData(); // Simulate batch data
+
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            conn.Open();
+            using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn))
+            {
+                bulkCopy.DestinationTableName = "YourTable";
+                bulkCopy.BatchSize = 5000; // ✅ Inserts in batches
+                bulkCopy.WriteToServer(table);
+            }
+        }
+    }
+
+    static DataTable GetData()
+    {
+        DataTable table = new DataTable();
+        table.Columns.Add("ID", typeof(int));
+        table.Columns.Add("Name", typeof(string));
+
+        for (int i = 0; i < 1000000; i++)
+            table.Rows.Add(i, $"Item {i}");
+
+        return table;
+    }
+}
+```
+
+* ✅ Inserts millions of rows in seconds
+* ✅ Uses minimal memory
+* ✅ Batch size prevents locking issues
+
+## 4. Channel<T> for Producer-Consumer Pattern
+* 🔹 Best For:
+   + Streaming data processing
+   + Avoiding thread contention
+   + Real-time processing (e.g., logs, events)
+
+```
+using System;
+using System.Collections.Generic;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+
+class ChannelBatchProcessing
+{
+    static async Task Main()
+    {
+        var channel = Channel.CreateUnbounded<string>();
+        Task producer = Task.Run(async () =>
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                await channel.Writer.WriteAsync($"Message {i}");
+            }
+            channel.Writer.Complete();
+        });
+
+        Task consumer = Task.Run(async () =>
+        {
+            await foreach (var message in channel.Reader.ReadAllAsync())
+            {
+                Console.WriteLine($"Processing: {message}");
+            }
+        });
+
+        await Task.WhenAll(producer, consumer);
+    }
+}
+```
+
+* ✅ Efficient for event-driven applications
+* ✅ Non-blocking processing with minimal memory usage
+* ✅ Scales well across multiple producers/consumers
+
+## 5. IAsyncEnumerable<T> for Streaming Large Data
+
+* Best For:
+   + Processing billions of records without memory overflow
+   + Avoiding List<T> or IEnumerable<T> high memory usage
+   + Optimized for await foreach processing
+
+```
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+
+class AsyncBatchProcessing
+{
+    static async Task Main()
+    {
+        await foreach (var line in ReadLargeFileAsync("C:\\Logs\\bigfile.log"))
+        {
+            Console.WriteLine(line);
+        }
+    }
+
+    static async IAsyncEnumerable<string> ReadLargeFileAsync(string filePath)
+    {
+        using StreamReader reader = new StreamReader(filePath);
+        while (!reader.EndOfStream)
+        {
+            yield return await reader.ReadLineAsync();
+        }
+    }
+}
+```
+
+* ✅ Does not load entire file into memory
+* ✅ Ideal for streaming millions of records
+* ✅ Works great in Web APIs and real-time data processing
+
+## 6. Background Batch Jobs (IHostedService in .NET Core)
+* 🔹 Best For:
+   + Running periodic batch jobs in ASP.NET Core apps
+   + Processing large data on schedule
+
+```
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+
+public class BatchJob : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            Console.WriteLine("Running batch job...");
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+        }
+    }
+}
+```
+
+* ✅ Runs batch processing tasks in the background
+* ✅ Ideal for scheduled data cleanup, reports, etc.
+
+![Batch Processing Mechanisms in C#](https://github.com/user-attachments/assets/ea495361-c3f2-4d00-9b8f-4c6275a5977d)
+
+
+## 🎯 Summary: Best Practices
+* ✅ Use Parallel.ForEach for multi-threaded processing
+* ✅ Use ConcurrentQueue for millions of files/records
+* ✅ Use SqlBulkCopy for efficient DB inserts
+* ✅ Use Channel<T> for real-time event processing
+* ✅ Use IAsyncEnumerable<T> for streaming data
+* ✅ Use background jobs (IHostedService) for scheduled tasks
