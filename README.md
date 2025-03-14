@@ -6,6 +6,11 @@
 * 2: API Key authorization
 * 1: Basic Authentication
 
+* Role-Based Access Control (RBAC)
+* Claims-Based Authorization
+* Policy-Based Authorization
+* Attribute-Based Authorization
+
 # Topics
 * Authentication
 * Authorization
