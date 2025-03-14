@@ -22,7 +22,23 @@
 
 ![Authorization Mechanism](https://github.com/user-attachments/assets/df75377f-6b2f-48a4-aeee-4bbcf1bf0ffa)
 
-# Topics
+# Multi-Factor Authentication (MFA) in .NET Applications
+
+## What is MFA?
+
+Multi-Factor Authentication (MFA) is a security mechanism that requires users to provide two or more forms of verification before gaining access to an application. This significantly enhances security by reducing the risk of unauthorized access due to stolen passwords.
+
+## Why Use MFA in .NET Applications?
+🔹 Protects against credential theft and phishing attacks.
+🔹 Strengthens access control by requiring multiple verification factors.
+🔹 Ensures compliance with security standards (e.g., GDPR, HIPAA).
+
+## Common MFA Methods
+✅ Something You Know – Password, PIN
+✅ Something You Have – OTP (One-Time Password) via SMS, Email, Authenticator App
+✅ Something You Are – Biometric verification (fingerprint, facial recognition)
+
+# Security Topics
 * Authentication
 * Authorization
 * Data protection
