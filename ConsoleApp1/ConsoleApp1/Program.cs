@@ -23,7 +23,16 @@ namespace ConsoleApp1
         {
             // Basic Exception Throwing
             // ====================================================================================================
-            throw new Exception("Something went wrong!");
+            // throw new Exception("Something went wrong, please try again.");
+            // throw new Exception("Oops! Something went wrong. Please try again.");
+            //TODO: DELETE ME (TESTING ONLY): BEGIN
+            // ====================================================================================================
+            //if (Environment.MachineName.Equals("MANH", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    throw new Exception("Something went wrong. Refresh or try again later.");
+            //}
+            // ====================================================================================================
+            //TODO: DELETE ME (TESTING ONLY): END
 
             // ✅ Better approach with InvalidOperationException
             // ====================================================================================================
