@@ -1312,3 +1312,4 @@ public class BatchJob : BackgroundService
 * https://github.com/gtechsltn/ConsoleApp_Log4Net
 * https://github.com/gtechsltn/SqlServerInsertFiles
 * https://github.com/gtechsltn/ConsoleApp_SharpZipLib
+* https://github.com/gtechsltn/ConsoleApp_EmailMessages
