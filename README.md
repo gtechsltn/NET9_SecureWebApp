@@ -1304,3 +1304,11 @@ public class BatchJob : BackgroundService
 * ✅ Use Channel<T> for real-time event processing
 * ✅ Use IAsyncEnumerable<T> for streaming data
 * ✅ Use background jobs (IHostedService) for scheduled tasks
+
+# References
+* https://github.com/gtechsltn/NET9_SecureWebApp
+* https://github.com/gtechsltn/NET48_WinSvc_DataExport
+* https://github.com/gtechsltn/SqlCommandTimeout
+* https://github.com/gtechsltn/ConsoleApp_Log4Net
+* https://github.com/gtechsltn/SqlServerInsertFiles
+* https://github.com/gtechsltn/ConsoleApp_SharpZipLib
