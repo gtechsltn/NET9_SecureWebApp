@@ -1,5 +1,5 @@
 # Secure Your .NET Web App in .NET 9
-* Exception Handling Scenarios (ConsoleApp1|https://github.com/gtechsltn/NET9_SecureWebApp/blob/master/ConsoleApp1/ConsoleApp1/Program.cs)
+* Exception Handling Scenarios ([ConsoleApp1](https://github.com/gtechsltn/NET9_SecureWebApp/blob/master/ConsoleApp1/ConsoleApp1/Program.cs))
 * Opening and Reading Billions of Files as Fast as Possible in C#
 * Opening and Reading Millions of Files as Fast as Possible in C#
 * Handling millions of files efficiently requires parallel processing, streaming, and optimized file handling to avoid bottlenecks.
